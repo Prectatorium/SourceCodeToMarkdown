@@ -1,0 +1,70 @@
+TOPIC
+    about_SourceCodeToMarkdown
+
+SHORT DESCRIPTION
+    Describes the SourceCodeToMarkdown PowerShell module for exporting source code to Markdown.
+
+LONG DESCRIPTION
+    The SourceCodeToMarkdown module provides tools for exporting source code files from 
+    directories into consolidated Markdown documents. This is useful for code reviews, 
+    documentation, archiving, and sharing code snippets.
+
+    The main cmdlet is Export-SourceCodeToMarkdown, which recursively traverses directory 
+    structures and consolidates source code files into a single Markdown document with 
+    optional features including:
+    
+    - Visual tree structure of directories
+    - Table of contents with clickable links
+    - Syntax highlighting for various programming languages
+    - Line numbering in code blocks
+    - File metadata and statistics
+    - Configurable file inclusion/exclusion patterns
+
+    The module is designed with performance and flexibility in mind, supporting large 
+    codebases with configurable size limits and error handling.
+
+MAIN CMDLETS
+    Export-SourceCodeToMarkdown
+        Exports source code files to a Markdown document.
+
+ALIASES
+    Export-CodeToMarkdown
+    Code2Md
+
+EXAMPLES
+    Example 1: Basic export
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\docs\source-export.md"
+    
+    Example 2: Export with table of contents and visual tree
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\export.md" -IncludeTableOfContents -IncludeVisualTree
+    
+    Example 3: Export specific file types with line numbers
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\project" -OutputPath ".\review.md" -IncludePattern "*.ps1", "*.cs" -IncludeLineNumbers
+    
+    Example 4: Export from multiple directories with exclusions
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\src", ".\tests" -OutputPath ".\full-export.md" -ExcludeDirectory "bin", "obj", ".git" -Force
+
+PERFORMANCE CONSIDERATIONS
+    - Processing large repositories may take significant time and memory
+    - Consider using more specific IncludePatterns for large codebases
+    - Output files can become very large; monitor file size
+    - Binary files are automatically skipped
+    - File size limits are configurable through module variables
+
+CONFIGURATION
+    The module configuration is stored in $Script:ModuleConfig and includes:
+    - MaxIndividualFileSize: Maximum size for individual files (default: 50MB)
+    - MaxTotalOutputSize: Maximum total output size (default: 1GB)
+    - DefaultEncoding: Text encoding for reading files (default: UTF8)
+    - LanguageMap: Mapping of file extensions to syntax highlighting languages
+    - DefaultExcludedDirectories: Directories excluded by default
+
+KNOWN LIMITATIONS
+    - Binary files are skipped automatically
+    - Symlinks are not followed by default
+    - Very large files (>50MB) may be skipped or cause performance issues
+    - The output Markdown file may be very large for large codebases
+
+SEE ALSO
+    Export-SourceCodeToMarkdown (cmdlet help)
+    Online Documentation: https://github.com/Prectatorium/SourceCodeToMarkdown
