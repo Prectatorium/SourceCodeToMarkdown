@@ -5,22 +5,24 @@ SHORT DESCRIPTION
     Describes the SourceCodeToMarkdown PowerShell module for exporting source code to Markdown.
 
 LONG DESCRIPTION
-    The SourceCodeToMarkdown module provides tools for exporting source code files from 
-    directories into consolidated Markdown documents. This is useful for code reviews, 
+    The SourceCodeToMarkdown module provides tools for exporting source code files from
+    directories into consolidated Markdown documents. This is useful for code reviews,
     documentation, archiving, and sharing code snippets.
 
-    The main cmdlet is Export-SourceCodeToMarkdown, which recursively traverses directory 
-    structures and consolidates source code files into a single Markdown document with 
+    The main cmdlet is Export-SourceCodeToMarkdown, which recursively traverses directory
+    structures and consolidates source code files into a single Markdown document with
     optional features including:
-    
+
     - Visual tree structure of directories
     - Table of contents with clickable links
     - Syntax highlighting for various programming languages
-    - Line numbering in code blocks
+    - Line numbering in code blocks with customizable padding
     - File metadata and statistics
     - Configurable file inclusion/exclusion patterns
+    - Optional comment removal from source files
+    - MarkdownLint compliance for generated output
 
-    The module is designed with performance and flexibility in mind, supporting large 
+    The module is designed with performance and flexibility in mind, supporting large
     codebases with configurable size limits and error handling.
 
 MAIN CMDLETS
@@ -31,18 +33,65 @@ ALIASES
     Export-CodeToMarkdown
     Code2Md
 
+NEW FEATURES
+
+    Line Number Padding
+        Use the -LineNumberPadding parameter to control how line numbers are formatted:
+
+        -LineNumberPadding 'spaces' (default): Line numbers are right-aligned with spaces
+        -LineNumberPadding 'zeros': Line numbers are padded with leading zeros (001, 002, etc.)
+
+        Example:
+        PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\out.md" -IncludeLineNumbers -LineNumberPadding 'zeros'
+
+    Comment Removal
+        Use the -RemoveComments switch to strip comments from source files before export:
+
+        PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\clean.md" -RemoveComments -IncludeLineNumbers
+
+        Supported comment styles:
+        - PowerShell: # ... and <# ... #>
+        - C-style: // ... and /* ... */
+        - HTML: <!-- ... -->
+        - SQL: -- ... and /* ... */
+        - Python: # ...
+
+        String literals are preserved to maintain code functionality.
+
+    MarkdownLint Compliance
+        The module now generates Markdown that complies with key markdownlint rules:
+
+        - MD009: No trailing spaces
+        - MD010: No hard tabs (4-space indentation)
+        - MD012: No multiple consecutive blank lines (max 1)
+        - MD013: Line length (max 120 characters)
+        - MD018: Space after # in headings
+        - MD022: Blank lines around headings
+        - MD024: No duplicate headings (auto-suffixes added)
+        - MD041: First line is H1 heading
+        - MD047: Single trailing newline
+
 EXAMPLES
     Example 1: Basic export
     PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\docs\source-export.md"
-    
+
     Example 2: Export with table of contents and visual tree
     PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\export.md" -IncludeTableOfContents -IncludeVisualTree
-    
+
     Example 3: Export specific file types with line numbers
     PS C:\> Export-SourceCodeToMarkdown -Path ".\project" -OutputPath ".\review.md" -IncludePattern "*.ps1", "*.cs" -IncludeLineNumbers
-    
+
     Example 4: Export from multiple directories with exclusions
     PS C:\> Export-SourceCodeToMarkdown -Path ".\src", ".\tests" -OutputPath ".\full-export.md" -ExcludeDirectory "bin", "obj", ".git" -Force
+
+    Example 5: Export with zero-padded line numbers
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\numbered.md" -IncludeLineNumbers -LineNumberPadding 'zeros'
+
+    Example 6: Export with comments removed
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\src" -OutputPath ".\clean.md" -RemoveComments -IncludeLineNumbers
+
+    Example 7: Full featured export
+    PS C:\> Export-SourceCodeToMarkdown -Path ".\project" -OutputPath ".\complete.md" -IncludePattern "*.ps1" -IncludeLineNumbers -LineNumberPadding 'zeros' -RemoveComments -IncludeTableOfContents -IncludeVisualTree -Force
 
 PERFORMANCE CONSIDERATIONS
     - Processing large repositories may take significant time and memory
@@ -50,6 +99,7 @@ PERFORMANCE CONSIDERATIONS
     - Output files can become very large; monitor file size
     - Binary files are automatically skipped
     - File size limits are configurable through module variables
+    - Comment removal adds processing time proportional to file size
 
 CONFIGURATION
     The module configuration is stored in $Script:ModuleConfig and includes:
@@ -59,12 +109,53 @@ CONFIGURATION
     - LanguageMap: Mapping of file extensions to syntax highlighting languages
     - DefaultExcludedDirectories: Directories excluded by default
 
+SUPPORTED FILE TYPES
+    The module supports syntax highlighting for many programming languages including:
+    - PowerShell: .ps1, .psm1, .psd1
+    - C#: .cs
+    - Visual Basic: .vb
+    - F#: .fs, .fsx, .fsproj
+    - Python: .py, .pyw
+    - JavaScript/TypeScript: .js, .ts, .jsx, .tsx
+    - HTML/CSS: .html, .htm, .css, .scss, .less
+    - Java: .java
+    - C/C++: .c, .cpp, .h, .hpp
+    - Go: .go
+    - Rust: .rs
+    - Ruby: .rb
+    - PHP: .php
+    - Swift: .swift
+    - Kotlin: .kt
+    - Dart: .dart
+    - SQL: .sql
+    - XML: .xml, .csproj, .fsproj, .vbproj
+    - YAML/JSON: .yaml, .yml, .json
+    - Markdown: .md
+    - Shell: .sh, .bash, .zsh
+
 KNOWN LIMITATIONS
     - Binary files are skipped automatically
     - Symlinks are not followed by default
     - Very large files (>50MB) may be skipped or cause performance issues
     - The output Markdown file may be very large for large codebases
+    - Complex string literals with escaped quotes may affect comment removal
+    - Triple-quoted strings (Python) are handled but may have edge cases
+
+TROUBLESHOOTING
+    Line numbers don't match original file:
+        - Ensure you're not using -IncludeLineNumbers without -RemoveComments
+        - If using -RemoveComments, line numbers reflect the comment-free output
+
+    Comments not being removed:
+        - Verify the file extension is supported for comment removal
+        - Check that comments are not inside string literals
+        - Use -Verbose to see detailed processing information
+
+    MarkdownLint errors in output:
+        - The module should automatically handle most markdownlint rules
+        - If you see issues, report them on the GitHub repository
 
 SEE ALSO
     Export-SourceCodeToMarkdown (cmdlet help)
     Online Documentation: https://github.com/Prectatorium/SourceCodeToMarkdown
+    MarkdownLint: https://github.com/DavidAnson/markdownlint
